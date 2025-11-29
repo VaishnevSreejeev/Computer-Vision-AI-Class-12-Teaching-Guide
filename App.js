@@ -1070,67 +1070,69 @@ export default function ComputerVisionGuide() {
         { id: 'quiz', label: '6. Quiz', icon: CheckCircle },
     ];
 
-    if (showLanding) {
-        return <LandingPage onStart={() => setShowLanding(false)} />;
-    }
-
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-blue-200">
-            {/* Header */}
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm/50 backdrop-blur-md bg-opacity-90">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
-                        <Activity size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900 tracking-tight">Making Machines See</h1>
-                        <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Unit 3 • Student Handbook</p>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content Layout */}
-            <main className="max-w-6xl mx-auto px-4 py-8 grid md:grid-cols-12 gap-8">
-
-                {/* Sidebar Navigation */}
-                <nav className="md:col-span-3 lg:col-span-3">
-                    <div className="sticky top-28 space-y-2">
-                        {navItems.map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <button
-                                    key={item.id}
-                                    onClick={() => setActiveSection(item.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeSection === item.id
-                                        ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20 translate-x-1'
-                                        : 'bg-white text-gray-500 hover:bg-gray-100 border border-transparent hover:border-gray-200'
-                                        }`}
-                                >
-                                    <Icon size={18} />
-                                    {item.label}
-                                </button>
-                            );
-                        })}
-
-                        <div className="mt-8 bg-gradient-to-br from-indigo-50 to-blue-50 p-5 rounded-2xl border border-blue-100 text-xs text-indigo-900 shadow-inner">
-                            <p className="font-bold mb-2 flex items-center gap-2 text-blue-700"><Zap size={14} /> Did you know?</p>
-                            <p className="leading-relaxed opacity-80">
-                                Deep Learning models can now surpass human accuracy in identifying specific objects in images!
-                            </p>
+            {showLanding ? (
+                <LandingPage onStart={() => setShowLanding(false)} />
+            ) : (
+                <>
+                    {/* Header */}
+                    <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm/50 backdrop-blur-md bg-opacity-90">
+                        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
+                            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
+                                <Activity size={24} />
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-gray-900 tracking-tight">Making Machines See</h1>
+                                <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">Unit 3 • Student Handbook</p>
+                            </div>
                         </div>
-                    </div>
-                </nav>
+                    </header>
 
-                {/* Dynamic Content Area */}
-                <div className="md:col-span-9 lg:col-span-9 pb-20">
-                    {activeSection === 'intro' && <IntroSection />}
-                    {activeSection === 'pixels' && <PixelLab />}
-                    {activeSection === 'pipeline' && <PipelineDeepDive />}
-                    {activeSection === 'ml' && <MLVisualizer />}
-                    {activeSection === 'apps' && <ApplicationsSection />}
-                    {activeSection === 'quiz' && <Quiz />}
-                </div>
-            </main>
+                    {/* Main Content Layout */}
+                    <main className="max-w-6xl mx-auto px-4 py-8 grid md:grid-cols-12 gap-8">
+
+                        {/* Sidebar Navigation */}
+                        <nav className="md:col-span-3 lg:col-span-3">
+                            <div className="sticky top-28 space-y-2">
+                                {navItems.map((item) => {
+                                    const Icon = item.icon;
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            onClick={() => setActiveSection(item.id)}
+                                            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 ${activeSection === item.id
+                                                ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20 translate-x-1'
+                                                : 'bg-white text-gray-500 hover:bg-gray-100 border border-transparent hover:border-gray-200'
+                                                }`}
+                                        >
+                                            <Icon size={18} />
+                                            {item.label}
+                                        </button>
+                                    );
+                                })}
+
+                                <div className="mt-8 bg-gradient-to-br from-indigo-50 to-blue-50 p-5 rounded-2xl border border-blue-100 text-xs text-indigo-900 shadow-inner">
+                                    <p className="font-bold mb-2 flex items-center gap-2 text-blue-700"><Zap size={14} /> Did you know?</p>
+                                    <p className="leading-relaxed opacity-80">
+                                        Deep Learning models can now surpass human accuracy in identifying specific objects in images!
+                                    </p>
+                                </div>
+                            </div>
+                        </nav>
+
+                        {/* Dynamic Content Area */}
+                        <div className="md:col-span-9 lg:col-span-9 pb-20">
+                            {activeSection === 'intro' && <IntroSection />}
+                            {activeSection === 'pixels' && <PixelLab />}
+                            {activeSection === 'pipeline' && <PipelineDeepDive />}
+                            {activeSection === 'ml' && <MLVisualizer />}
+                            {activeSection === 'apps' && <ApplicationsSection />}
+                            {activeSection === 'quiz' && <Quiz />}
+                        </div>
+                    </main>
+                </>
+            )}
         </div>
     );
 }
