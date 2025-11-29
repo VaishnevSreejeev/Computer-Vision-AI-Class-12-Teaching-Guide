@@ -1072,15 +1072,14 @@ export default function ComputerVisionGuide() {
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-blue-200 relative">
-            {/* Landing Page Overlay - Hidden via CSS instead of unmounting to prevent Spline errors */}
+            {/* Landing Page Overlay - Always mounted, hidden via opacity to prevent 3D context loss/errors */}
             <div
                 className={`fixed inset-0 z-50 transition-opacity duration-700 ${showLanding ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-                style={{ display: showLanding ? 'block' : 'none' }}
+                aria-hidden={!showLanding}
             >
-                {/* Only render if we haven't started yet, or keep it to avoid unmount. 
-                     Actually, to be safe against the specific removeChild error, we should keep it mounted but hidden.
-                     However, for performance, we might want to unmount it *eventually*. 
-                     But let's try keeping it mounted first as the primary fix.
+                {/* 
+                     We keep this mounted to avoid 'removeChild' errors from the 3D library (Spline).
+                     The 'pointer-events-none' class ensures it doesn't block clicks when hidden.
                  */}
                 <LandingPage onStart={() => setShowLanding(false)} />
             </div>

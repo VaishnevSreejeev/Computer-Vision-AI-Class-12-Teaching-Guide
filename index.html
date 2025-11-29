@@ -183,24 +183,48 @@ const Spotlight = ({ className, fill }) => {
 
 // components/ui/spline.js
 
-const { Suspense, lazy } = React;
+const { Suspense, lazy, Component, memo } = React;
 const Spline = lazy(() => import('@splinetool/react-spline'));
 
-function SplineScene({ scene, className }) {
+class SplineErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.warn("Spline component error caught (likely removeChild):", error);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return null;
+        }
+        return this.props.children;
+    }
+}
+
+const SplineScene = memo(function SplineScene({ scene, className }) {
     return (
         <div className={className} style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <Suspense
-                fallback={
-                    <div className="w-full h-full flex items-center justify-center">
-                        <span className="loader"></span>
-                    </div>
-                }
-            >
-                <Spline scene={scene} />
-            </Suspense>
+            <SplineErrorBoundary>
+                <Suspense
+                    fallback={
+                        <div className="w-full h-full flex items-center justify-center">
+                            <span className="loader"></span>
+                        </div>
+                    }
+                >
+                    <Spline scene={scene} />
+                </Suspense>
+            </SplineErrorBoundary>
         </div>
     );
-}
+});
 
 // components/LandingPage.js
 
@@ -1313,15 +1337,14 @@ function ComputerVisionGuide() {
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-blue-200 relative">
-            {/* Landing Page Overlay - Hidden via CSS instead of unmounting to prevent Spline errors */}
+            {/* Landing Page Overlay - Always mounted, hidden via opacity to prevent 3D context loss/errors */}
             <div
                 className={`fixed inset-0 z-50 transition-opacity duration-700 ${showLanding ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-                style={{ display: showLanding ? 'block' : 'none' }}
+                aria-hidden={!showLanding}
             >
-                {/* Only render if we haven't started yet, or keep it to avoid unmount. 
-                     Actually, to be safe against the specific removeChild error, we should keep it mounted but hidden.
-                     However, for performance, we might want to unmount it *eventually*. 
-                     But let's try keeping it mounted first as the primary fix.
+                {/* 
+                     We keep this mounted to avoid 'removeChild' errors from the 3D library (Spline).
+                     The 'pointer-events-none' class ensures it doesn't block clicks when hidden.
                  */}
                 <LandingPage onStart={() => setShowLanding(false)} />
             </div>
