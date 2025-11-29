@@ -343,42 +343,26 @@ const IntroSection = () => (
 
 // --- 2. Pixels, RGB & Resolution ---
 const PixelLab = () => {
-    const [grid, setGrid] = useState(Array(64).fill(0));
+    // State for dynamic grid
+    const [gridWidth, setGridWidth] = useState(8);
+    const [gridHeight, setGridHeight] = useState(8);
+    const [grid, setGrid] = useState(Array(64).fill(0)); // Default 8x8
+
+    // RGB State
     const [r, setR] = useState(100);
     const [g, setG] = useState(150);
     const [b, setB] = useState(200);
+
+    // Update grid when dimensions change
+    useEffect(() => {
+        const totalPixels = gridWidth * gridHeight;
+        setGrid(Array(totalPixels).fill(0));
+    }, [gridWidth, gridHeight]);
 
     const toggleCell = (index) => {
         const newGrid = [...grid];
         newGrid[index] = newGrid[index] === 0 ? 1 : 0;
         setGrid(newGrid);
-    };
-
-    // Resolution Demo Grid
-    const renderResolutionGrid = (size, isHighRes) => {
-        const total = size * size;
-        const cells = Array(total).fill(0).map((_, i) => {
-            const row = Math.floor(i / size);
-            const col = i % size;
-            const center = size / 2;
-            const dist = Math.sqrt((row - center + 0.5) ** 2 + (col - center + 0.5) ** 2);
-            return dist < size / 2.5 ? 1 : 0;
-        });
-
-        return (
-            <div
-                className={`grid gap-[1px] bg-gray-300 border border-gray-400 p-1 mx-auto`}
-                style={{
-                    gridTemplateColumns: `repeat(${size}, 1fr)`,
-                    width: '180px',
-                    height: '180px'
-                }}
-            >
-                {cells.map((val, idx) => (
-                    <div key={idx} className={`${val ? 'bg-black' : 'bg-white'}`} />
-                ))}
-            </div>
-        );
     };
 
     return (
@@ -389,33 +373,82 @@ const PixelLab = () => {
                 subtitle="From Binary to RGB"
             />
 
-            {/* 1. Binary Images */}
+            {/* 1. Binary Images & Resolution */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-gray-800">
-                    <MousePointer2 className="text-blue-500" /> 1. Binary Images (0s and 1s)
+                    <MousePointer2 className="text-blue-500" /> 1. Binary Images & Resolution
                 </h3>
                 <p className="text-gray-600 mb-6">
                     Computers store black and white images as a grid of numbers.
-                    <strong> 0 = Black, 1 = White</strong> (or 0-255 for grayscale).
+                    <strong> 0 = Black, 1 = White</strong>.
+                    <br />
+                    The <strong>Resolution</strong> is the number of pixels (Width x Height).
                 </p>
+
+                {/* Controls for Grid Size */}
+                <div className="flex flex-wrap gap-6 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 items-center">
+                    <div className="flex items-center gap-3">
+                        <label className="text-sm font-bold text-gray-700">Width:</label>
+                        <input
+                            type="number" min="2" max="20"
+                            value={gridWidth}
+                            onChange={(e) => setGridWidth(Math.min(20, Math.max(2, Number(e.target.value))))}
+                            className="w-16 p-2 rounded border border-gray-300 text-center font-mono"
+                        />
+                    </div>
+                    <span className="text-gray-400 font-bold">x</span>
+                    <div className="flex items-center gap-3">
+                        <label className="text-sm font-bold text-gray-700">Height:</label>
+                        <input
+                            type="number" min="2" max="20"
+                            value={gridHeight}
+                            onChange={(e) => setGridHeight(Math.min(20, Math.max(2, Number(e.target.value))))}
+                            className="w-16 p-2 rounded border border-gray-300 text-center font-mono"
+                        />
+                    </div>
+                    <div className="ml-auto text-sm text-blue-600 font-bold bg-blue-100 px-3 py-1 rounded-full">
+                        Total Pixels: {gridWidth * gridHeight}
+                    </div>
+                </div>
+
                 <div className="grid md:grid-cols-2 gap-8">
+                    {/* Interactive Grid */}
                     <div className="flex flex-col items-center">
-                        <div className="grid grid-cols-8 gap-1 bg-gray-300 p-2 rounded shadow-inner w-fit">
+                        <div
+                            className="grid gap-[1px] bg-gray-300 p-1 rounded shadow-inner transition-all duration-300"
+                            style={{
+                                gridTemplateColumns: `repeat(${gridWidth}, 1fr)`,
+                                width: 'min(100%, 300px)',
+                                aspectRatio: `${gridWidth}/${gridHeight}`
+                            }}
+                        >
                             {grid.map((cell, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => toggleCell(idx)}
-                                    className={`w-8 h-8 rounded-sm transition-colors border border-gray-400 ${cell === 1 ? 'bg-white' : 'bg-black'}`}
+                                    className={`w-full h-full transition-colors duration-100 ${cell === 1 ? 'bg-white' : 'bg-black'}`}
+                                    title={`Pixel ${idx}`}
                                 />
                             ))}
                         </div>
-                        <button onClick={() => setGrid(Array(64).fill(0))} className="mt-4 text-sm text-red-500 font-bold hover:underline">Clear Grid</button>
+                        <div className="flex gap-4 mt-4">
+                            <button onClick={() => setGrid(Array(gridWidth * gridHeight).fill(0))} className="text-sm text-red-500 font-bold hover:bg-red-50 px-3 py-1 rounded transition-colors">Clear (All Black)</button>
+                            <button onClick={() => setGrid(Array(gridWidth * gridHeight).fill(1))} className="text-sm text-gray-500 font-bold hover:bg-gray-100 px-3 py-1 rounded transition-colors">Fill (All White)</button>
+                        </div>
                     </div>
-                    <div className="bg-slate-900 p-4 rounded-lg font-mono text-xs text-green-400 overflow-x-auto shadow-inner">
-                        <div className="mb-2 text-gray-500 border-b border-gray-700 pb-1">Digital Representation</div>
-                        <div className="grid grid-cols-8 gap-2 text-center">
+
+                    {/* Digital Representation */}
+                    <div className="bg-slate-900 p-4 rounded-lg font-mono text-xs text-green-400 overflow-auto shadow-inner h-[300px] flex flex-col">
+                        <div className="mb-2 text-gray-500 border-b border-gray-700 pb-1 flex justify-between">
+                            <span>Digital Representation</span>
+                            <span>{gridWidth}x{gridHeight} Matrix</span>
+                        </div>
+                        <div
+                            className="grid gap-x-2 gap-y-1 text-center"
+                            style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}
+                        >
                             {grid.map((cell, idx) => (
-                                <span key={idx} className={cell ? "text-white font-bold" : "text-gray-600"}>{cell}</span>
+                                <span key={idx} className={`${cell ? "text-white font-bold" : "text-gray-600"}`}>{cell}</span>
                             ))}
                         </div>
                     </div>
@@ -458,27 +491,6 @@ const PixelLab = () => {
                     </div>
                 </div>
             </div>
-
-            {/* 3. Resolution */}
-            <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-blue-900">
-                    <Maximize className="text-blue-600" /> 3. Understanding Resolution
-                </h3>
-                <p className="text-gray-700 mb-8">
-                    Resolution is the total number of pixels. Higher resolution = More detail.
-                </p>
-                <div className="flex flex-col md:flex-row justify-center items-center gap-12">
-                    <div className="text-center">
-                        {renderResolutionGrid(5, false)}
-                        <p className="mt-2 font-bold text-gray-500">Low Res (5x5)</p>
-                    </div>
-                    <ArrowRight className="text-gray-400 hidden md:block" size={32} />
-                    <div className="text-center">
-                        {renderResolutionGrid(15, true)}
-                        <p className="mt-2 font-bold text-blue-600">High Res (15x15)</p>
-                    </div>
-                </div>
-            </div>
         </div>
     );
 };
@@ -511,8 +523,6 @@ const PipelineDeepDive = () => {
             reader.readAsDataURL(file);
         }
     };
-
-    // Reset filters when changing stages mostly, but we can keep them for flow
 
     // Stages based on textbook (3.3.1 - 3.3.5)
     const stages = [
@@ -772,7 +782,7 @@ const MLVisualizer = () => {
     const [assignments, setAssignments] = useState([]); // Index of centroid for each point
 
     // Concept State (Dynamic Dimensions)
-    const [dimensions, setDimensions] = useState([50, 200]);
+    const [featurePixels, setFeaturePixels] = useState([0, 255, 0, 255]); // 2x2 grid example
 
     // Initialize random data
     useEffect(() => {
@@ -874,51 +884,34 @@ const MLVisualizer = () => {
                         Computers don't see "images". They see a <strong>list of numbers</strong> (a vector).
                     </p>
                     <p>
-                        If an image has <strong>N pixels</strong>, it is a single point in <strong>N-dimensional space</strong>.
-                        We can only draw 2D or 3D graphs, but the math works the same for 10,000 dimensions!
+                        If an image has <strong>4 pixels</strong> (2x2), it is a single point in <strong>4-dimensional space</strong>.
+                        We can map the first two pixels to X and Y coordinates to visualize it.
                     </p>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
 
-                    {/* LEFT: The Image Builder */}
+                    {/* LEFT: The Image Builder (2x2 Grid) */}
                     <div className="flex-1 w-full bg-gray-50 p-4 rounded-xl border border-gray-200">
                         <div className="flex justify-between items-center mb-4">
-                            <h4 className="font-bold text-gray-700 text-sm uppercase">1. The Image (Pixels)</h4>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => {
-                                        if (dimensions.length > 1) setDimensions(prev => prev.slice(0, -1));
-                                    }}
-                                    className="px-2 py-1 text-xs font-bold bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-50"
-                                    disabled={dimensions.length <= 1}
-                                >
-                                    - Remove Pixel
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (dimensions.length < 5) setDimensions(prev => [...prev, Math.floor(Math.random() * 255)]);
-                                    }}
-                                    className="px-2 py-1 text-xs font-bold bg-green-100 text-green-600 rounded hover:bg-green-200 disabled:opacity-50"
-                                    disabled={dimensions.length >= 5}
-                                >
-                                    + Add Pixel
-                                </button>
-                            </div>
+                            <h4 className="font-bold text-gray-700 text-sm uppercase">1. The Image (2x2 Pixels)</h4>
                         </div>
 
                         {/* Pixel Visuals */}
-                        <div className="flex gap-1 mb-6 justify-center">
-                            {dimensions.map((val, i) => (
+                        <div className="grid grid-cols-2 gap-1 w-32 mx-auto mb-6">
+                            {featurePixels.map((val, i) => (
                                 <div key={i} className="relative group">
                                     <div
-                                        className="w-12 h-12 border-2 border-gray-400 flex items-center justify-center text-xs font-bold text-white shadow-sm transition-colors"
+                                        className="w-16 h-16 border-2 border-gray-400 flex items-center justify-center text-xs font-bold text-white shadow-sm transition-colors cursor-pointer hover:border-blue-400"
                                         style={{ backgroundColor: `rgb(${val},${val},${val})` }}
+                                        onClick={() => {
+                                            const newPixels = [...featurePixels];
+                                            newPixels[i] = newPixels[i] === 0 ? 255 : 0; // Simple toggle for ease
+                                            setFeaturePixels(newPixels);
+                                        }}
+                                        title="Click to toggle Black/White"
                                     >
                                         P{i + 1}
-                                    </div>
-                                    <div className="absolute -bottom-6 left-0 right-0 text-center text-xs text-gray-500 font-mono">
-                                        {val}
                                     </div>
                                 </div>
                             ))}
@@ -926,15 +919,15 @@ const MLVisualizer = () => {
 
                         {/* Sliders */}
                         <div className="space-y-3 max-h-40 overflow-y-auto pr-2">
-                            {dimensions.map((val, i) => (
+                            {featurePixels.map((val, i) => (
                                 <div key={i} className="flex items-center gap-3 text-xs">
                                     <span className="font-bold text-gray-500 w-6">P{i + 1}</span>
                                     <input
                                         type="range" min="0" max="255" value={val}
                                         onChange={(e) => {
-                                            const newDims = [...dimensions];
-                                            newDims[i] = Number(e.target.value);
-                                            setDimensions(newDims);
+                                            const newPixels = [...featurePixels];
+                                            newPixels[i] = Number(e.target.value);
+                                            setFeaturePixels(newPixels);
                                         }}
                                         className="flex-1 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                     />
@@ -950,11 +943,11 @@ const MLVisualizer = () => {
                     <div className="flex-1 w-full bg-gray-900 p-4 rounded-xl border border-gray-800 text-green-400 font-mono shadow-inner self-stretch flex flex-col justify-center">
                         <h4 className="font-bold text-gray-500 text-xs uppercase mb-4 border-b border-gray-700 pb-2">2. Feature Vector</h4>
                         <div className="text-center text-lg break-all">
-                            [ {dimensions.join(', ')} ]
+                            [ {featurePixels.join(', ')} ]
                         </div>
                         <div className="mt-4 text-xs text-gray-500 text-center">
                             This is how the AI "reads" the image.<br />
-                            A vector of size {dimensions.length}.
+                            A vector of size {featurePixels.length}.
                         </div>
                     </div>
 
@@ -965,30 +958,21 @@ const MLVisualizer = () => {
                         <h4 className="font-bold text-gray-700 text-sm uppercase mb-2">3. The Graph Point</h4>
 
                         <div className="relative w-full aspect-square border-l-2 border-b-2 border-gray-400 bg-gray-50 mb-2">
-                            {dimensions.length >= 2 ? (
-                                <>
-                                    <div
-                                        className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transition-all duration-200"
-                                        style={{
-                                            left: `${(dimensions[0] / 255) * 100}%`,
-                                            bottom: `${(dimensions[1] / 255) * 100}%`,
-                                            transform: 'translate(-50%, 50%)'
-                                        }}
-                                    />
-                                    <div className="absolute bottom-2 right-2 text-xs font-bold text-blue-600">P1 (X)</div>
-                                    <div className="absolute top-2 left-2 text-xs font-bold text-blue-600">P2 (Y)</div>
-                                </>
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-xs text-gray-400 text-center p-4">
-                                    Need at least 2 pixels (dimensions) to plot on a 2D graph.
-                                </div>
-                            )}
+                            <div
+                                className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transition-all duration-200"
+                                style={{
+                                    left: `${(featurePixels[0] / 255) * 100}%`,
+                                    bottom: `${(featurePixels[1] / 255) * 100}%`,
+                                    transform: 'translate(-50%, 50%)'
+                                }}
+                            />
+                            <div className="absolute bottom-2 right-2 text-xs font-bold text-blue-600">P1 (X)</div>
+                            <div className="absolute top-2 left-2 text-xs font-bold text-blue-600">P2 (Y)</div>
                         </div>
 
                         <div className="text-xs text-gray-500 text-center min-h-[40px]">
-                            {dimensions.length === 2 && "Perfect! 2 Pixels = 2D Point."}
-                            {dimensions.length === 3 && <span className="text-orange-600">3D Space! P3 would be the Z-axis (depth).</span>}
-                            {dimensions.length > 3 && <span className="text-purple-600">4D+ Space! We can't draw this, but the math is the same.</span>}
+                            Plotting P1 vs P2.<br />
+                            <span className="text-gray-400">P3 and P4 are hidden dimensions here.</span>
                         </div>
                     </div>
                 </div>
