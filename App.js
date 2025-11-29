@@ -505,9 +505,8 @@ const MLVisualizer = () => {
     const [kmeansStep, setKmeansStep] = useState(0); // 0: Init, 1: Assign, 2: Update
     const [assignments, setAssignments] = useState([]); // Index of centroid for each point
 
-    // Concept State
-    const [pixel1, setPixel1] = useState(50);
-    const [pixel2, setPixel2] = useState(200);
+    // Concept State (Dynamic Dimensions)
+    const [dimensions, setDimensions] = useState([50, 200]);
 
     // Initialize random data
     useEffect(() => {
@@ -599,48 +598,132 @@ const MLVisualizer = () => {
             <SectionTitle icon={Network} title="ML Concepts: KNN & K-Means" subtitle="Visualizing how AI classifies data" />
 
             {/* 1. Feature Vector Concept */}
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
                     <Database className="text-blue-500" /> Concept: From Image to Graph
                 </h3>
-                <p className="text-gray-600 mb-6 text-sm">
-                    How do we graph an image? Imagine a tiny image with only 2 pixels.
-                    The brightness of <strong>Pixel 1 is the X-axis</strong> and <strong>Pixel 2 is the Y-axis</strong>.
-                    Every image becomes a single point on a graph.
-                </p>
 
-                <div className="flex flex-col md:flex-row gap-12 items-center justify-center">
-                    {/* The Image */}
-                    <div className="text-center">
-                        <div className="font-bold text-xs mb-2 text-gray-500">INPUT IMAGE (2 PIXELS)</div>
-                        <div className="flex border-4 border-gray-800 w-24 h-12">
-                            <div className="w-12 h-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: `rgb(${pixel1},${pixel1},${pixel1})` }}>P1</div>
-                            <div className="w-12 h-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: `rgb(${pixel2},${pixel2},${pixel2})` }}>P2</div>
+                <div className="mb-6 text-sm text-gray-600 space-y-2">
+                    <p>
+                        Computers don't see "images". They see a <strong>list of numbers</strong> (a vector).
+                    </p>
+                    <p>
+                        If an image has <strong>N pixels</strong>, it is a single point in <strong>N-dimensional space</strong>.
+                        We can only draw 2D or 3D graphs, but the math works the same for 10,000 dimensions!
+                    </p>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+
+                    {/* LEFT: The Image Builder */}
+                    <div className="flex-1 w-full bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-bold text-gray-700 text-sm uppercase">1. The Image (Pixels)</h4>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => {
+                                        if (dimensions.length > 1) setDimensions(prev => prev.slice(0, -1));
+                                    }}
+                                    className="px-2 py-1 text-xs font-bold bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-50"
+                                    disabled={dimensions.length <= 1}
+                                >
+                                    - Remove Pixel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (dimensions.length < 5) setDimensions(prev => [...prev, Math.floor(Math.random() * 255)]);
+                                    }}
+                                    className="px-2 py-1 text-xs font-bold bg-green-100 text-green-600 rounded hover:bg-green-200 disabled:opacity-50"
+                                    disabled={dimensions.length >= 5}
+                                >
+                                    + Add Pixel
+                                </button>
+                            </div>
                         </div>
-                        <div className="mt-4 space-y-2 w-32 mx-auto">
-                            <input type="range" min="0" max="255" value={pixel1} onChange={(e) => setPixel1(Number(e.target.value))} className="w-full h-1 bg-gray-200 rounded" />
-                            <input type="range" min="0" max="255" value={pixel2} onChange={(e) => setPixel2(Number(e.target.value))} className="w-full h-1 bg-gray-200 rounded" />
+
+                        {/* Pixel Visuals */}
+                        <div className="flex gap-1 mb-6 justify-center">
+                            {dimensions.map((val, i) => (
+                                <div key={i} className="relative group">
+                                    <div
+                                        className="w-12 h-12 border-2 border-gray-400 flex items-center justify-center text-xs font-bold text-white shadow-sm transition-colors"
+                                        style={{ backgroundColor: `rgb(${val},${val},${val})` }}
+                                    >
+                                        P{i + 1}
+                                    </div>
+                                    <div className="absolute -bottom-6 left-0 right-0 text-center text-xs text-gray-500 font-mono">
+                                        {val}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Sliders */}
+                        <div className="space-y-3 max-h-40 overflow-y-auto pr-2">
+                            {dimensions.map((val, i) => (
+                                <div key={i} className="flex items-center gap-3 text-xs">
+                                    <span className="font-bold text-gray-500 w-6">P{i + 1}</span>
+                                    <input
+                                        type="range" min="0" max="255" value={val}
+                                        onChange={(e) => {
+                                            const newDims = [...dimensions];
+                                            newDims[i] = Number(e.target.value);
+                                            setDimensions(newDims);
+                                        }}
+                                        className="flex-1 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                    />
+                                    <span className="font-mono w-8 text-right">{val}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <ArrowRight className="text-gray-300 hidden md:block" size={32} />
+                    <ArrowRight className="text-gray-300 hidden lg:block self-center" size={32} />
 
-                    {/* The Vector */}
-                    <div className="text-center font-mono bg-gray-900 text-green-400 p-4 rounded-lg shadow-inner">
-                        <div className="text-xs text-gray-500 mb-1 border-b border-gray-700">FEATURE VECTOR</div>
-                        [ {pixel1}, {pixel2} ]
+                    {/* MIDDLE: The Vector */}
+                    <div className="flex-1 w-full bg-gray-900 p-4 rounded-xl border border-gray-800 text-green-400 font-mono shadow-inner self-stretch flex flex-col justify-center">
+                        <h4 className="font-bold text-gray-500 text-xs uppercase mb-4 border-b border-gray-700 pb-2">2. Feature Vector</h4>
+                        <div className="text-center text-lg break-all">
+                            [ {dimensions.join(', ')} ]
+                        </div>
+                        <div className="mt-4 text-xs text-gray-500 text-center">
+                            This is how the AI "reads" the image.<br />
+                            A vector of size {dimensions.length}.
+                        </div>
                     </div>
 
-                    <ArrowRight className="text-gray-300 hidden md:block" size={32} />
+                    <ArrowRight className="text-gray-300 hidden lg:block self-center" size={32} />
 
-                    {/* The Graph */}
-                    <div className="relative w-48 h-48 border-l-2 border-b-2 border-gray-400 bg-gray-50">
-                        <div
-                            className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transition-all duration-200"
-                            style={{ left: `${(pixel1 / 255) * 100}%`, bottom: `${(pixel2 / 255) * 100}%`, transform: 'translate(-50%, 50%)' }}
-                        />
-                        <div className="absolute bottom-[-20px] left-0 text-xs font-bold text-gray-400">P1 (X)</div>
-                        <div className="absolute left-[-25px] bottom-0 -rotate-90 text-xs font-bold text-gray-400">P2 (Y)</div>
+                    {/* RIGHT: The Graph */}
+                    <div className="flex-1 w-full bg-white p-4 rounded-xl border border-gray-200 self-stretch flex flex-col">
+                        <h4 className="font-bold text-gray-700 text-sm uppercase mb-2">3. The Graph Point</h4>
+
+                        <div className="relative w-full aspect-square border-l-2 border-b-2 border-gray-400 bg-gray-50 mb-2">
+                            {dimensions.length >= 2 ? (
+                                <>
+                                    <div
+                                        className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transition-all duration-200"
+                                        style={{
+                                            left: `${(dimensions[0] / 255) * 100}%`,
+                                            bottom: `${(dimensions[1] / 255) * 100}%`,
+                                            transform: 'translate(-50%, 50%)'
+                                        }}
+                                    />
+                                    <div className="absolute bottom-2 right-2 text-xs font-bold text-blue-600">P1 (X)</div>
+                                    <div className="absolute top-2 left-2 text-xs font-bold text-blue-600">P2 (Y)</div>
+                                </>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-xs text-gray-400 text-center p-4">
+                                    Need at least 2 pixels (dimensions) to plot on a 2D graph.
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="text-xs text-gray-500 text-center min-h-[40px]">
+                            {dimensions.length === 2 && "Perfect! 2 Pixels = 2D Point."}
+                            {dimensions.length === 3 && <span className="text-orange-600">3D Space! P3 would be the Z-axis (depth).</span>}
+                            {dimensions.length > 3 && <span className="text-purple-600">4D+ Space! We can't draw this, but the math is the same.</span>}
+                        </div>
                     </div>
                 </div>
             </div>
