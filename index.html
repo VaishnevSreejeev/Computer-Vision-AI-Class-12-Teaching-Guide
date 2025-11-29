@@ -203,7 +203,8 @@ const PixelLab = () => {
         const size = gridWidth * gridHeight;
         setBinaryGrid(Array(size).fill(0));
         setGrayGrid(Array(size).fill(128));
-        setRgbGrid(Array(size).fill({ r: 255, g: 0, b: 0 }));
+        // Fix: Use Array.from to create unique objects for each cell, preventing shared reference bugs
+        setRgbGrid(Array.from({ length: size }, () => ({ r: 255, g: 0, b: 0 })));
     }, [gridWidth, gridHeight]);
 
     // Handlers
