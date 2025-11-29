@@ -13,11 +13,19 @@ html_template = """<!DOCTYPE html>
         "imports": {
             "react": "https://esm.sh/react@18.2.0?dev",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
-            "lucide-react": "https://esm.sh/lucide-react@0.300.0?dev"
+            "lucide-react": "https://esm.sh/lucide-react@0.300.0?dev",
+            "@splinetool/react-spline": "https://esm.sh/@splinetool/react-spline@4.0.0?external=react,react-dom",
+            "@splinetool/runtime": "https://esm.sh/@splinetool/runtime@1.0.0"
         }
     }
     </script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+    <script>
+        // Mock clsx/tailwind-merge for the cn utility since we don't have the full packages
+        window.cn = function(...inputs) {
+            return inputs.filter(Boolean).join(' ');
+        };
+    </script>
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -74,17 +82,37 @@ html_template = """<!DOCTYPE html>
 </body>
 </html>"""
 
-with open('App.js', 'r', encoding='utf-8') as f:
-    app_code = f.read()
+def read_file(path):
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            return f.read()
+    return ""
 
-# Remove the default export
+# Read all components
+utils_code = read_file('lib/utils.js').replace('export function', 'function')
+card_code = read_file('components/ui/card.js')
+spotlight_code = read_file('components/ui/spotlight.js')
+spline_code = read_file('components/ui/spline.js')
+landing_code = read_file('components/LandingPage.js')
+app_code = read_file('App.js')
+
+# Remove the default export from App.js
 app_code = app_code.replace('export default function ComputerVisionGuide', 'function ComputerVisionGuide')
 
-# Robustly remove imports using regex
-# This removes lines starting with import ... up to the semicolon
+# Remove imports from App.js
 app_code = re.sub(r'import\s+[\s\S]*?from\s+[\'"].*?[\'"];?', '', app_code)
 
-final_html = html_template.replace('%APP_CODE%', app_code)
+# Combine all code
+full_code = f"""
+{utils_code}
+{card_code}
+{spotlight_code}
+{spline_code}
+{landing_code}
+{app_code}
+"""
+
+final_html = html_template.replace('%APP_CODE%', full_code)
 
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(final_html)

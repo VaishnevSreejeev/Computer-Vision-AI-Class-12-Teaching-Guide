@@ -1059,6 +1059,7 @@ const Quiz = () => {
 
 export default function ComputerVisionGuide() {
     const [activeSection, setActiveSection] = useState('intro');
+    const [showLanding, setShowLanding] = useState(true);
 
     const navItems = [
         { id: 'intro', label: '1. Introduction', icon: Eye },
@@ -1068,6 +1069,10 @@ export default function ComputerVisionGuide() {
         { id: 'apps', label: '5. Applications', icon: Smartphone },
         { id: 'quiz', label: '6. Quiz', icon: CheckCircle },
     ];
+
+    if (showLanding) {
+        return <LandingPage onStart={() => setShowLanding(false)} />;
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-800 font-sans selection:bg-blue-200">
