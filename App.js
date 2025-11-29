@@ -77,26 +77,48 @@ const IntroSection = () => (
 
 // --- 2. Pixels, RGB & Resolution ---
 const PixelLab = () => {
-    // State for dynamic grid
+    // Grid State
     const [gridWidth, setGridWidth] = useState(8);
     const [gridHeight, setGridHeight] = useState(8);
-    const [grid, setGrid] = useState(Array(64).fill(0)); // Default 8x8
+    const [mode, setMode] = useState('binary'); // 'binary', 'grayscale', 'rgb'
 
-    // RGB State
-    const [r, setR] = useState(100);
-    const [g, setG] = useState(150);
-    const [b, setB] = useState(200);
+    // Data State
+    // We store data as simple values for binary/gray, and objects for RGB
+    const [gridData, setGridData] = useState(Array(64).fill(0));
 
-    // Update grid when dimensions change
+    // Brush State
+    const [grayVal, setGrayVal] = useState(128);
+    const [rgbVal, setRgbVal] = useState({ r: 100, g: 150, b: 200 });
+
+    // Reset grid when dimensions or mode changes
     useEffect(() => {
-        const totalPixels = gridWidth * gridHeight;
-        setGrid(Array(totalPixels).fill(0));
-    }, [gridWidth, gridHeight]);
+        const total = gridWidth * gridHeight;
+        if (mode === 'rgb') {
+            setGridData(Array(total).fill({ r: 255, g: 255, b: 255 }));
+        } else {
+            setGridData(Array(total).fill(0));
+        }
+    }, [gridWidth, gridHeight, mode]);
 
-    const toggleCell = (index) => {
-        const newGrid = [...grid];
-        newGrid[index] = newGrid[index] === 0 ? 1 : 0;
-        setGrid(newGrid);
+    const handleCellClick = (index) => {
+        const newData = [...gridData];
+
+        if (mode === 'binary') {
+            newData[index] = newData[index] === 0 ? 1 : 0;
+        } else if (mode === 'grayscale') {
+            newData[index] = grayVal;
+        } else if (mode === 'rgb') {
+            newData[index] = { ...rgbVal };
+        }
+
+        setGridData(newData);
+    };
+
+    const getCellColor = (val) => {
+        if (mode === 'binary') return val === 1 ? 'white' : 'black';
+        if (mode === 'grayscale') return `rgb(${val}, ${val}, ${val})`;
+        if (mode === 'rgb') return `rgb(${val.r}, ${val.g}, ${val.b})`;
+        return 'white';
     };
 
     return (
@@ -104,125 +126,192 @@ const PixelLab = () => {
             <SectionTitle
                 icon={Grid3X3}
                 title="How Machines See"
-                subtitle="From Binary to RGB"
+                subtitle="Pixels, Grayscale & RGB"
             />
 
-            {/* 1. Binary Images & Resolution */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-gray-800">
-                    <MousePointer2 className="text-blue-500" /> 1. Binary Images & Resolution
-                </h3>
-                <p className="text-gray-600 mb-6">
-                    Computers store black and white images as a grid of numbers.
-                    <strong> 0 = Black, 1 = White</strong>.
-                    <br />
-                    The <strong>Resolution</strong> is the number of pixels (Width x Height).
-                </p>
-
-                {/* Controls for Grid Size */}
-                <div className="flex flex-wrap gap-6 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200 items-center">
-                    <div className="flex items-center gap-3">
-                        <label className="text-sm font-bold text-gray-700">Width:</label>
-                        <input
-                            type="number" min="2" max="20"
-                            value={gridWidth}
-                            onChange={(e) => setGridWidth(Math.min(20, Math.max(2, Number(e.target.value))))}
-                            className="w-16 p-2 rounded border border-gray-300 text-center font-mono"
-                        />
-                    </div>
-                    <span className="text-gray-400 font-bold">x</span>
-                    <div className="flex items-center gap-3">
-                        <label className="text-sm font-bold text-gray-700">Height:</label>
-                        <input
-                            type="number" min="2" max="20"
-                            value={gridHeight}
-                            onChange={(e) => setGridHeight(Math.min(20, Math.max(2, Number(e.target.value))))}
-                            className="w-16 p-2 rounded border border-gray-300 text-center font-mono"
-                        />
-                    </div>
-                    <div className="ml-auto text-sm text-blue-600 font-bold bg-blue-100 px-3 py-1 rounded-full">
-                        Total Pixels: {gridWidth * gridHeight}
-                    </div>
+                {/* Mode Selector */}
+                <div className="flex flex-wrap gap-4 mb-8 border-b border-gray-100 pb-6">
+                    {['binary', 'grayscale', 'rgb'].map((m) => (
+                        <button
+                            key={m}
+                            onClick={() => setMode(m)}
+                            className={`px-6 py-2 rounded-full font-bold text-sm capitalize transition-all ${mode === m
+                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                }`}
+                        >
+                            {m} Mode
+                        </button>
+                    ))}
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                    {/* Interactive Grid */}
-                    <div className="flex flex-col items-center">
+                <div className="grid lg:grid-cols-12 gap-8">
+
+                    {/* LEFT COLUMN: Controls & Brush */}
+                    <div className="lg:col-span-4 space-y-6">
+
+                        {/* Grid Size Controls */}
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">1. Grid Size</h4>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number" min="2" max="16"
+                                    value={gridWidth}
+                                    onChange={(e) => setGridWidth(Math.min(16, Math.max(2, Number(e.target.value))))}
+                                    className="w-14 p-2 rounded border text-center font-bold"
+                                />
+                                <span className="text-gray-400">×</span>
+                                <input
+                                    type="number" min="2" max="16"
+                                    value={gridHeight}
+                                    onChange={(e) => setGridHeight(Math.min(16, Math.max(2, Number(e.target.value))))}
+                                    className="w-14 p-2 rounded border text-center font-bold"
+                                />
+                                <div className="ml-auto text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                    {gridWidth * gridHeight} px
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Brush Controls */}
+                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">2. Pixel Brush</h4>
+
+                            {mode === 'binary' && (
+                                <div className="text-sm text-gray-600">
+                                    <p className="mb-2">Click pixels to toggle:</p>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 bg-black border border-gray-300 rounded"></div>
+                                            <span className="font-mono font-bold">0</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 bg-white border border-gray-300 rounded"></div>
+                                            <span className="font-mono font-bold">1</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {mode === 'grayscale' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <div
+                                            className="w-12 h-12 rounded border border-gray-300 shadow-sm"
+                                            style={{ backgroundColor: `rgb(${grayVal},${grayVal},${grayVal})` }}
+                                        />
+                                        <div className="text-right">
+                                            <div className="text-xs text-gray-500">Intensity</div>
+                                            <div className="font-mono font-bold text-xl">{grayVal}</div>
+                                        </div>
+                                    </div>
+                                    <input
+                                        type="range" min="0" max="255"
+                                        value={grayVal}
+                                        onChange={(e) => setGrayVal(Number(e.target.value))}
+                                        className="w-full accent-gray-600"
+                                    />
+                                    <p className="text-xs text-gray-500">Select a shade, then click grid to paint.</p>
+                                </div>
+                            )}
+
+                            {mode === 'rgb' && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <div
+                                            className="w-12 h-12 rounded border border-gray-300 shadow-sm"
+                                            style={{ backgroundColor: `rgb(${rgbVal.r},${rgbVal.g},${rgbVal.b})` }}
+                                        />
+                                        <div className="text-xs font-mono text-gray-600">
+                                            R: {rgbVal.r}<br />G: {rgbVal.g}<br />B: {rgbVal.b}
+                                        </div>
+                                    </div>
+
+                                    {['r', 'g', 'b'].map(c => (
+                                        <div key={c} className="flex items-center gap-2">
+                                            <span className={`text-xs font-bold uppercase w-4 ${c === 'r' ? 'text-red-500' : c === 'g' ? 'text-green-500' : 'text-blue-500'}`}>{c}</span>
+                                            <input
+                                                type="range" min="0" max="255"
+                                                value={rgbVal[c]}
+                                                onChange={(e) => setRgbVal(prev => ({ ...prev, [c]: Number(e.target.value) }))}
+                                                className={`flex-1 h-1 rounded-lg appearance-none cursor-pointer ${c === 'r' ? 'bg-red-200 accent-red-500' : c === 'g' ? 'bg-green-200 accent-green-500' : 'bg-blue-200 accent-blue-500'}`}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                const total = gridWidth * gridHeight;
+                                if (mode === 'rgb') setGridData(Array(total).fill({ r: 255, g: 255, b: 255 }));
+                                else setGridData(Array(total).fill(0));
+                            }}
+                            className="w-full py-2 text-sm text-red-600 bg-red-50 hover:bg-red-100 rounded-lg font-bold transition-colors"
+                        >
+                            Reset Grid
+                        </button>
+                    </div>
+
+                    {/* CENTER: The Grid */}
+                    <div className="lg:col-span-5 flex flex-col items-center justify-center bg-gray-100 rounded-xl p-4 border border-gray-200 min-h-[300px]">
                         <div
-                            className="grid gap-[1px] bg-gray-300 p-1 rounded shadow-inner transition-all duration-300"
+                            className="grid gap-[1px] bg-gray-300 p-1 shadow-xl bg-white"
                             style={{
                                 gridTemplateColumns: `repeat(${gridWidth}, 1fr)`,
                                 width: 'min(100%, 300px)',
                                 aspectRatio: `${gridWidth}/${gridHeight}`
                             }}
                         >
-                            {grid.map((cell, idx) => (
+                            {gridData.map((val, idx) => (
                                 <button
                                     key={idx}
-                                    onClick={() => toggleCell(idx)}
-                                    className={`w-full h-full transition-colors duration-100 ${cell === 1 ? 'bg-white' : 'bg-black'}`}
+                                    onMouseDown={() => handleCellClick(idx)}
+                                    // Simple hover effect could be added here if needed
+                                    className="w-full h-full transition-colors duration-75 hover:opacity-90"
+                                    style={{ backgroundColor: getCellColor(val) }}
                                     title={`Pixel ${idx}`}
                                 />
                             ))}
                         </div>
-                        <div className="flex gap-4 mt-4">
-                            <button onClick={() => setGrid(Array(gridWidth * gridHeight).fill(0))} className="text-sm text-red-500 font-bold hover:bg-red-50 px-3 py-1 rounded transition-colors">Clear (All Black)</button>
-                            <button onClick={() => setGrid(Array(gridWidth * gridHeight).fill(1))} className="text-sm text-gray-500 font-bold hover:bg-gray-100 px-3 py-1 rounded transition-colors">Fill (All White)</button>
+                        <div className="mt-4 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                            Interactive View
                         </div>
                     </div>
 
-                    {/* Digital Representation */}
-                    <div className="bg-slate-900 p-4 rounded-lg font-mono text-xs text-green-400 overflow-auto shadow-inner h-[300px] flex flex-col">
-                        <div className="mb-2 text-gray-500 border-b border-gray-700 pb-1 flex justify-between">
-                            <span>Digital Representation</span>
-                            <span>{gridWidth}x{gridHeight} Matrix</span>
+                    {/* RIGHT: Matrix View */}
+                    <div className="lg:col-span-3 bg-slate-900 rounded-xl p-4 overflow-hidden flex flex-col shadow-inner border border-slate-800">
+                        <div className="text-xs font-bold text-slate-500 uppercase mb-2 border-b border-slate-700 pb-2">
+                            Computer Memory
                         </div>
-                        <div
-                            className="grid gap-x-2 gap-y-1 text-center"
-                            style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}
-                        >
-                            {grid.map((cell, idx) => (
-                                <span key={idx} className={`${cell ? "text-white font-bold" : "text-gray-600"}`}>{cell}</span>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* 2. RGB Mixer */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <h3 className="font-bold text-xl mb-4 flex items-center gap-2 text-gray-800">
-                    <Palette className="text-purple-500" /> 2. RGB Color Model
-                </h3>
-                <p className="text-gray-600 mb-6">
-                    Color images combine <strong>Red, Green, and Blue</strong> channels. Each channel has a value from 0 to 255 (8 bits).
-                    Total colors = $256 \times 256 \times 256 \approx 16.7$ Million.
-                </p>
-
-                <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div
-                        className="w-40 h-40 rounded-full shadow-lg border-4 border-gray-100 transition-colors duration-75"
-                        style={{ backgroundColor: `rgb(${r}, ${g}, ${b})` }}
-                    />
-                    <div className="flex-1 w-full space-y-4">
-                        {[{ l: 'Red', v: r, s: setR, c: 'accent-red-500', t: 'text-red-600' },
-                        { l: 'Green', v: g, s: setG, c: 'accent-green-500', t: 'text-green-600' },
-                        { l: 'Blue', v: b, s: setB, c: 'accent-blue-500', t: 'text-blue-600' }].map((channel) => (
-                            <div key={channel.l}>
-                                <div className={`flex justify-between text-sm font-bold ${channel.t} mb-1`}>
-                                    <span>{channel.l}</span><span>{channel.v}</span>
-                                </div>
-                                <input
-                                    type="range" min="0" max="255" value={channel.v}
-                                    onChange={(e) => channel.s(Number(e.target.value))}
-                                    className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer ${channel.c}`}
-                                />
+                        <div className="flex-1 overflow-auto no-scrollbar">
+                            <div
+                                className="grid gap-x-2 gap-y-1 font-mono text-[10px] leading-relaxed"
+                                style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}
+                            >
+                                {gridData.map((val, idx) => (
+                                    <div key={idx} className="text-center">
+                                        {mode === 'binary' && (
+                                            <span className={val ? "text-white" : "text-slate-600"}>{val}</span>
+                                        )}
+                                        {mode === 'grayscale' && (
+                                            <span className="text-green-400">{val}</span>
+                                        )}
+                                        {mode === 'rgb' && (
+                                            <div className="flex flex-col scale-75 origin-top">
+                                                <span className="text-red-400">{val.r}</span>
+                                                <span className="text-green-400">{val.g}</span>
+                                                <span className="text-blue-400">{val.b}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                        <div className="bg-gray-100 p-2 rounded text-center font-mono text-sm mt-2">
-                            Pixel Value: ({r}, {g}, {b})
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -610,7 +699,7 @@ const MLVisualizer = () => {
             {/* 1. Feature Vector Concept */}
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <Database className="text-blue-500" /> Concept: From Image to Graph
+                    <Database className="text-blue-500" /> Concept: From Image to Graph (High Dimensions)
                 </h3>
 
                 <div className="mb-6 text-sm text-gray-600 space-y-2">
@@ -619,14 +708,14 @@ const MLVisualizer = () => {
                     </p>
                     <p>
                         If an image has <strong>4 pixels</strong> (2x2), it is a single point in <strong>4-dimensional space</strong>.
-                        We can map the first two pixels to X and Y coordinates to visualize it.
+                        We can't draw 4D axes, but we can use a <strong>Radar Chart</strong> to visualize all 4 dimensions at once!
                     </p>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+                <div className="grid lg:grid-cols-3 gap-8 items-start">
 
                     {/* LEFT: The Image Builder (2x2 Grid) */}
-                    <div className="flex-1 w-full bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                         <div className="flex justify-between items-center mb-4">
                             <h4 className="font-bold text-gray-700 text-sm uppercase">1. The Image (2x2 Pixels)</h4>
                         </div>
@@ -640,7 +729,7 @@ const MLVisualizer = () => {
                                         style={{ backgroundColor: `rgb(${val},${val},${val})` }}
                                         onClick={() => {
                                             const newPixels = [...featurePixels];
-                                            newPixels[i] = newPixels[i] === 0 ? 255 : 0; // Simple toggle for ease
+                                            newPixels[i] = newPixels[i] === 0 ? 255 : 0; // Simple toggle
                                             setFeaturePixels(newPixels);
                                         }}
                                         title="Click to toggle Black/White"
@@ -671,25 +760,56 @@ const MLVisualizer = () => {
                         </div>
                     </div>
 
-                    <ArrowRight className="text-gray-300 hidden lg:block self-center" size={32} />
+                    {/* CENTER: The Radar Chart (4D Visualization) */}
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col items-center">
+                        <h4 className="font-bold text-purple-600 text-sm uppercase mb-4">2. The 4D Fingerprint</h4>
 
-                    {/* MIDDLE: The Vector */}
-                    <div className="flex-1 w-full bg-gray-900 p-4 rounded-xl border border-gray-800 text-green-400 font-mono shadow-inner self-stretch flex flex-col justify-center">
-                        <h4 className="font-bold text-gray-500 text-xs uppercase mb-4 border-b border-gray-700 pb-2">2. Feature Vector</h4>
-                        <div className="text-center text-lg break-all">
-                            [ {featurePixels.join(', ')} ]
+                        <div className="relative w-48 h-48">
+                            <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+                                {/* Background Grid */}
+                                <circle cx="50" cy="50" r="20" fill="none" stroke="#e5e7eb" strokeWidth="1" />
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="1" />
+                                <line x1="50" y1="50" x2="50" y2="10" stroke="#e5e7eb" strokeWidth="1" />
+                                <line x1="50" y1="50" x2="90" y2="50" stroke="#e5e7eb" strokeWidth="1" />
+                                <line x1="50" y1="50" x2="50" y2="90" stroke="#e5e7eb" strokeWidth="1" />
+                                <line x1="50" y1="50" x2="10" y2="50" stroke="#e5e7eb" strokeWidth="1" />
+
+                                {/* Labels */}
+                                <text x="50" y="5" fontSize="6" textAnchor="middle" fill="#6b7280" fontWeight="bold">P1</text>
+                                <text x="95" y="52" fontSize="6" textAnchor="start" fill="#6b7280" fontWeight="bold">P2</text>
+                                <text x="50" y="98" fontSize="6" textAnchor="middle" fill="#6b7280" fontWeight="bold">P3</text>
+                                <text x="5" y="52" fontSize="6" textAnchor="end" fill="#6b7280" fontWeight="bold">P4</text>
+
+                                {/* Data Polygon */}
+                                <polygon
+                                    points={`
+                                        50,${50 - (featurePixels[0] / 255) * 40} 
+                                        ${50 + (featurePixels[1] / 255) * 40},50 
+                                        50,${50 + (featurePixels[2] / 255) * 40} 
+                                        ${50 - (featurePixels[3] / 255) * 40},50
+                                    `}
+                                    fill="rgba(147, 51, 234, 0.2)"
+                                    stroke="#9333ea"
+                                    strokeWidth="2"
+                                />
+
+                                {/* Points */}
+                                <circle cx="50" cy={50 - (featurePixels[0] / 255) * 40} r="2" fill="#9333ea" />
+                                <circle cx={50 + (featurePixels[1] / 255) * 40} cy="50" r="2" fill="#9333ea" />
+                                <circle cx="50" cy={50 + (featurePixels[2] / 255) * 40} r="2" fill="#9333ea" />
+                                <circle cx={50 - (featurePixels[3] / 255) * 40} cy="50" r="2" fill="#9333ea" />
+                            </svg>
                         </div>
+
                         <div className="mt-4 text-xs text-gray-500 text-center">
-                            This is how the AI "reads" the image.<br />
-                            A vector of size {featurePixels.length}.
+                            Each axis represents one pixel.<br />
+                            The <strong>shape</strong> is the unique "fingerprint" of this image in 4D space.
                         </div>
                     </div>
 
-                    <ArrowRight className="text-gray-300 hidden lg:block self-center" size={32} />
-
-                    {/* RIGHT: The Graph */}
-                    <div className="flex-1 w-full bg-white p-4 rounded-xl border border-gray-200 self-stretch flex flex-col">
-                        <h4 className="font-bold text-gray-700 text-sm uppercase mb-2">3. The Graph Point</h4>
+                    {/* RIGHT: The 2D Projection */}
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col">
+                        <h4 className="font-bold text-gray-700 text-sm uppercase mb-2">3. 2D Projection (Simplified)</h4>
 
                         <div className="relative w-full aspect-square border-l-2 border-b-2 border-gray-400 bg-gray-50 mb-2">
                             <div
@@ -705,8 +825,7 @@ const MLVisualizer = () => {
                         </div>
 
                         <div className="text-xs text-gray-500 text-center min-h-[40px]">
-                            Plotting P1 vs P2.<br />
-                            <span className="text-gray-400">P3 and P4 are hidden dimensions here.</span>
+                            We often "flatten" high dimensions to 2D or 3D to visualize them, losing some info (P3 & P4 hidden here).
                         </div>
                     </div>
                 </div>
