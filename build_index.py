@@ -12,6 +12,7 @@ html_template = """<!DOCTYPE html>
     {
         "imports": {
             "react": "https://esm.sh/react@18.2.0?dev",
+            "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime?dev",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
             "lucide-react": "https://esm.sh/lucide-react@0.300.0?dev",
             "@splinetool/react-spline": "https://esm.sh/@splinetool/react-spline@4.0.0?external=react,react-dom",
