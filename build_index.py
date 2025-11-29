@@ -1,6 +1,11 @@
 import os
 import re
 
+def read_file(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+# HTML Template
 html_template = """<!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -14,24 +19,24 @@ html_template = """<!DOCTYPE html>
             "react": "https://esm.sh/react@18.2.0?dev",
             "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime?dev",
             "react-dom/client": "https://esm.sh/react-dom@18.2.0/client?dev",
-            "lucide-react": "https://esm.sh/lucide-react@0.300.0?dev",
-            "@splinetool/react-spline": "https://esm.sh/@splinetool/react-spline@4.0.0?external=react,react-dom",
-            "@splinetool/runtime": "https://esm.sh/@splinetool/runtime@1.0.0"
+            "lucide-react": "https://esm.sh/lucide-react@0.300.0?dev"
         }
     }
     </script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
-    <script>
-        // Mock clsx/tailwind-merge for the cn utility since we don't have the full packages
-        window.cn = function(...inputs) {
-            return inputs.filter(Boolean).join(' ');
-        };
-    </script>
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .animate-in { animation: fadeIn 0.5s ease-out; }
+        .zoom-in { animation: zoomIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomIn { from { opacity: 0.9; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Custom Scrollbar for Matrix View */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
     </style>
 </head>
 <body class='bg-gray-50'>
@@ -56,7 +61,7 @@ html_template = """<!DOCTYPE html>
         import React, { useState, useEffect, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
         
-        // Correctly split imports for Babel Standalone
+        // Lucide Icons
         import { 
           Eye, Camera, Layers, Grid3X3, Maximize, Activity, 
           CheckCircle, Brain, Search, Scan,
@@ -67,6 +72,10 @@ html_template = """<!DOCTYPE html>
         } from 'lucide-react';
         
         const ImageIcon = Image;
+
+// --- COMPONENT CODE START ---
+%COMPONENT_CODE%
+// --- COMPONENT CODE END ---
 
 // --- APP CODE START ---
 %APP_CODE%
@@ -83,37 +92,26 @@ html_template = """<!DOCTYPE html>
 </body>
 </html>"""
 
-def read_file(path):
-    if os.path.exists(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return f.read()
-    return ""
-
-# Read all components
-utils_code = read_file('lib/utils.js').replace('export function', 'function')
-card_code = read_file('components/ui/card.js')
-spotlight_code = read_file('components/ui/spotlight.js')
-spline_code = read_file('components/ui/spline.js')
+# Read Files
 landing_code = read_file('components/LandingPage.js')
 app_code = read_file('App.js')
 
-# Remove the default export from App.js
+# Process LandingPage.js
+# Remove imports/exports
+landing_code = re.sub(r'import\s+[\s\S]*?from\s+[\'"].*?[\'"];?', '', landing_code)
+landing_code = landing_code.replace('export default LandingPage;', '')
+landing_code = landing_code.replace('export default function LandingPage', 'function LandingPage')
+
+# Process App.js
+# Remove imports
+app_code = re.sub(r'import\s+[\s\S]*?from\s+[\'"].*?[\'"];?', '', app_code)
+# Remove default export
 app_code = app_code.replace('export default function ComputerVisionGuide', 'function ComputerVisionGuide')
 
-# Remove imports from App.js
-app_code = re.sub(r'import\s+[\s\S]*?from\s+[\'"].*?[\'"];?', '', app_code)
-
-# Combine all code
-full_code = f"""
-{utils_code}
-{card_code}
-{spotlight_code}
-{spline_code}
-{landing_code}
-{app_code}
-"""
-
-final_html = html_template.replace('%APP_CODE%', full_code)
+# Combine
+final_html = html_template.replace('%COMPONENT_CODE%', landing_code).replace('%APP_CODE%', app_code)
 
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(final_html)
+
+print("Build complete: index.html updated.")
