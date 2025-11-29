@@ -234,13 +234,41 @@ const PixelLab = () => {
                         <div className="overflow-auto flex-1 custom-scrollbar">
                             {activeTab === 'binary' && (
                                 <div className="grid gap-2 text-center" style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}>
-                                    {binaryGrid.map((v, i) => <span key={i} className={v ? 'text-white font-bold' : 'text-gray-600'}>{v}</span>)}
+                                    {binaryGrid.map((v, i) => (
+                                        <input
+                                            key={i}
+                                            type="number"
+                                            min="0" max="1"
+                                            value={v}
+                                            onChange={(e) => {
+                                                const val = Math.min(1, Math.max(0, Number(e.target.value)));
+                                                const newG = [...binaryGrid];
+                                                newG[i] = val;
+                                                setBinaryGrid(newG);
+                                            }}
+                                            className={`w-full bg-transparent text-center focus:outline-none focus:bg-slate-800 rounded ${v ? 'text-white font-bold' : 'text-gray-600'}`}
+                                        />
+                                    ))}
                                 </div>
                             )}
 
                             {activeTab === 'grayscale' && (
                                 <div className="grid gap-2 text-center" style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}>
-                                    {grayGrid.map((v, i) => <span key={i} className="text-gray-300">{v}</span>)}
+                                    {grayGrid.map((v, i) => (
+                                        <input
+                                            key={i}
+                                            type="number"
+                                            min="0" max="255"
+                                            value={v}
+                                            onChange={(e) => {
+                                                const val = Math.min(255, Math.max(0, Number(e.target.value)));
+                                                const newG = [...grayGrid];
+                                                newG[i] = val;
+                                                setGrayGrid(newG);
+                                            }}
+                                            className="w-full bg-transparent text-gray-300 text-center focus:outline-none focus:bg-slate-800 rounded"
+                                        />
+                                    ))}
                                 </div>
                             )}
 
@@ -249,19 +277,61 @@ const PixelLab = () => {
                                     <div>
                                         <div className="text-red-500 font-bold mb-1">Red Channel</div>
                                         <div className="grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}>
-                                            {rgbGrid.map((v, i) => <span key={i} className="text-red-300/80">{v.r}</span>)}
+                                            {rgbGrid.map((v, i) => (
+                                                <input
+                                                    key={i}
+                                                    type="number"
+                                                    min="0" max="255"
+                                                    value={v.r}
+                                                    onChange={(e) => {
+                                                        const val = Math.min(255, Math.max(0, Number(e.target.value)));
+                                                        const newG = [...rgbGrid];
+                                                        newG[i] = { ...newG[i], r: val };
+                                                        setRgbGrid(newG);
+                                                    }}
+                                                    className="w-full bg-transparent text-red-300/80 text-center focus:outline-none focus:bg-slate-800 rounded"
+                                                />
+                                            ))}
                                         </div>
                                     </div>
                                     <div>
                                         <div className="text-green-500 font-bold mb-1">Green Channel</div>
                                         <div className="grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}>
-                                            {rgbGrid.map((v, i) => <span key={i} className="text-green-300/80">{v.g}</span>)}
+                                            {rgbGrid.map((v, i) => (
+                                                <input
+                                                    key={i}
+                                                    type="number"
+                                                    min="0" max="255"
+                                                    value={v.g}
+                                                    onChange={(e) => {
+                                                        const val = Math.min(255, Math.max(0, Number(e.target.value)));
+                                                        const newG = [...rgbGrid];
+                                                        newG[i] = { ...newG[i], g: val };
+                                                        setRgbGrid(newG);
+                                                    }}
+                                                    className="w-full bg-transparent text-green-300/80 text-center focus:outline-none focus:bg-slate-800 rounded"
+                                                />
+                                            ))}
                                         </div>
                                     </div>
                                     <div>
                                         <div className="text-blue-500 font-bold mb-1">Blue Channel</div>
                                         <div className="grid gap-1 text-center" style={{ gridTemplateColumns: `repeat(${gridWidth}, 1fr)` }}>
-                                            {rgbGrid.map((v, i) => <span key={i} className="text-blue-300/80">{v.b}</span>)}
+                                            {rgbGrid.map((v, i) => (
+                                                <input
+                                                    key={i}
+                                                    type="number"
+                                                    min="0" max="255"
+                                                    value={v.b}
+                                                    onChange={(e) => {
+                                                        const val = Math.min(255, Math.max(0, Number(e.target.value)));
+                                                        const newG = [...rgbGrid];
+                                                        newG[i] = { ...newG[i], b: val };
+                                                        setRgbGrid(newG);
+                                                    }}
+                                                    className="w-full bg-transparent text-blue-300/80 text-center focus:outline-none focus:bg-slate-800 rounded"
+                                                />
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -677,107 +747,91 @@ const MLVisualizer = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <SectionTitle icon={Network} title="ML Concepts: KNN & K-Means" subtitle="Visualizing how AI classifies data" />
 
-            {/* 1. Feature Vector Concept */}
+            {/* 1. Feature Vector Concept - REPLACED WITH FRUIT CLASSIFIER */}
             <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <Database className="text-blue-500" /> Concept: From Image to Graph
+                    <Database className="text-blue-500" /> Concept: Feature Extraction
                 </h3>
 
                 <div className="mb-6 text-sm text-gray-600 space-y-2">
                     <p>
-                        Computers don't see "images". They see a <strong>list of numbers</strong> (a vector).
+                        How do we turn an image into a point on a graph? We extract <strong>Features</strong>.
                     </p>
                     <p>
-                        If an image has <strong>4 pixels</strong> (2x2), it is a single point in <strong>4-dimensional space</strong>.
-                        We can map the first two pixels to X and Y coordinates to visualize it.
+                        Imagine we want to classify fruit. We can measure two features: <strong>Color (Redness)</strong> and <strong>Shape (Roundness)</strong>.
                     </p>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
+                <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
 
-                    {/* LEFT: The Image Builder (2x2 Grid) */}
-                    <div className="flex-1 w-full bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <h4 className="font-bold text-gray-700 text-sm uppercase">1. The Image (2x2 Pixels)</h4>
+                    {/* Step 1: The Object */}
+                    <div className="flex flex-col items-center space-y-2">
+                        <div className="w-24 h-24 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-center text-4xl shadow-sm">
+                            🍎
                         </div>
+                        <span className="text-xs font-bold text-gray-500 uppercase">Input Image</span>
+                    </div>
 
-                        {/* Pixel Visuals */}
-                        <div className="grid grid-cols-2 gap-1 w-32 mx-auto mb-6">
-                            {featurePixels.map((val, i) => (
-                                <div key={i} className="relative group">
-                                    <div
-                                        className="w-16 h-16 border-2 border-gray-400 flex items-center justify-center text-xs font-bold text-white shadow-sm transition-colors cursor-pointer hover:border-blue-400"
-                                        style={{ backgroundColor: `rgb(${val},${val},${val})` }}
-                                        onClick={() => {
-                                            const newPixels = [...featurePixels];
-                                            newPixels[i] = newPixels[i] === 0 ? 255 : 0; // Simple toggle for ease
-                                            setFeaturePixels(newPixels);
-                                        }}
-                                        title="Click to toggle Black/White"
-                                    >
-                                        P{i + 1}
-                                    </div>
+                    <ArrowRight className="text-gray-300" />
+
+                    {/* Step 2: Extraction */}
+                    <div className="bg-gray-900 p-4 rounded-xl border border-gray-800 text-green-400 font-mono shadow-inner w-64">
+                        <h4 className="font-bold text-gray-500 text-xs uppercase mb-3 border-b border-gray-700 pb-2">Feature Extractor</h4>
+
+                        <div className="space-y-3">
+                            <div>
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span>Redness</span>
+                                    <span>0.9</span>
                                 </div>
-                            ))}
+                                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div className="h-full bg-red-500 w-[90%]"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span>Roundness</span>
+                                    <span>0.8</span>
+                                </div>
+                                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                    <div className="h-full bg-blue-500 w-[80%]"></div>
+                                </div>
+                            </div>
                         </div>
-
-                        {/* Sliders */}
-                        <div className="space-y-3 max-h-40 overflow-y-auto pr-2">
-                            {featurePixels.map((val, i) => (
-                                <div key={i} className="flex items-center gap-3 text-xs">
-                                    <span className="font-bold text-gray-500 w-6">P{i + 1}</span>
-                                    <input
-                                        type="range" min="0" max="255" value={val}
-                                        onChange={(e) => {
-                                            const newPixels = [...featurePixels];
-                                            newPixels[i] = Number(e.target.value);
-                                            setFeaturePixels(newPixels);
-                                        }}
-                                        className="flex-1 h-1 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                                    />
-                                    <span className="font-mono w-8 text-right">{val}</span>
-                                </div>
-                            ))}
+                        <div className="mt-4 text-center text-xs text-gray-500">
+                            Vector: [0.9, 0.8]
                         </div>
                     </div>
 
-                    <ArrowRight className="text-gray-300 hidden lg:block self-center" size={32} />
+                    <ArrowRight className="text-gray-300" />
 
-                    {/* MIDDLE: The Vector */}
-                    <div className="flex-1 w-full bg-gray-900 p-4 rounded-xl border border-gray-800 text-green-400 font-mono shadow-inner self-stretch flex flex-col justify-center">
-                        <h4 className="font-bold text-gray-500 text-xs uppercase mb-4 border-b border-gray-700 pb-2">2. Feature Vector</h4>
-                        <div className="text-center text-lg break-all">
-                            [ {featurePixels.join(', ')} ]
-                        </div>
-                        <div className="mt-4 text-xs text-gray-500 text-center">
-                            This is how the AI "reads" the image.<br />
-                            A vector of size {featurePixels.length}.
-                        </div>
-                    </div>
+                    {/* Step 3: The Graph */}
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 w-64 h-64 relative">
+                        <h4 className="font-bold text-gray-700 text-xs uppercase mb-2 absolute top-2 left-2">Feature Space</h4>
 
-                    <ArrowRight className="text-gray-300 hidden lg:block self-center" size={32} />
+                        {/* Axes */}
+                        <div className="absolute bottom-8 left-8 right-4 h-[1px] bg-gray-300"></div> {/* X */}
+                        <div className="absolute top-8 bottom-8 left-8 w-[1px] bg-gray-300"></div> {/* Y */}
 
-                    {/* RIGHT: The Graph */}
-                    <div className="flex-1 w-full bg-white p-4 rounded-xl border border-gray-200 self-stretch flex flex-col">
-                        <h4 className="font-bold text-gray-700 text-sm uppercase mb-2">3. The Graph Point</h4>
+                        <div className="absolute bottom-4 right-4 text-[10px] font-bold text-gray-400">Redness (X)</div>
+                        <div className="absolute top-8 left-2 text-[10px] font-bold text-gray-400 rotate-90 origin-left">Roundness (Y)</div>
 
-                        <div className="relative w-full aspect-square border-l-2 border-b-2 border-gray-400 bg-gray-50 mb-2">
-                            <div
-                                className="absolute w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg transition-all duration-200"
-                                style={{
-                                    left: `${(featurePixels[0] / 255) * 100}%`,
-                                    bottom: `${(featurePixels[1] / 255) * 100}%`,
-                                    transform: 'translate(-50%, 50%)'
-                                }}
-                            />
-                            <div className="absolute bottom-2 right-2 text-xs font-bold text-blue-600">P1 (X)</div>
-                            <div className="absolute top-2 left-2 text-xs font-bold text-blue-600">P2 (Y)</div>
+                        {/* The Point */}
+                        <div
+                            className="absolute w-4 h-4 bg-red-500 rounded-full border-2 border-white shadow-lg animate-bounce"
+                            style={{ bottom: 'calc(8px + 80%)', left: 'calc(8px + 90%)' }}
+                        >
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] px-2 py-0.5 rounded whitespace-nowrap">
+                                Apple
+                            </div>
                         </div>
 
-                        <div className="text-xs text-gray-500 text-center min-h-[40px]">
-                            Plotting P1 vs P2.<br />
-                            <span className="text-gray-400">P3 and P4 are hidden dimensions here.</span>
-                        </div>
+                        {/* Ghost Banana for context */}
+                        <div
+                            className="absolute w-3 h-3 bg-yellow-400 rounded-full opacity-30"
+                            style={{ bottom: 'calc(8px + 20%)', left: 'calc(8px + 20%)' }}
+                        ></div>
+                        <div className="absolute bottom-[25%] left-[25%] text-[8px] text-gray-400">Banana?</div>
                     </div>
                 </div>
             </div>
