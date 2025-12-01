@@ -1354,6 +1354,51 @@ function ComputerVisionGuide() {
                         {activeSection === 'ml' && <MLVisualizer />}
                         {activeSection === 'apps' && <ApplicationsSection />}
                         {activeSection === 'quiz' && <Quiz />}
+
+                        {/* Navigation Footer */}
+                        <div className="mt-12 flex justify-between items-center pt-8 border-t border-gray-200">
+                            {(() => {
+                                const activeIndex = navItems.findIndex(item => item.id === activeSection);
+                                const nextItem = navItems[activeIndex + 1];
+                                const prevItem = navItems[activeIndex - 1];
+
+                                return (
+                                    <>
+                                        {prevItem ? (
+                                            <button
+                                                onClick={() => {
+                                                    setActiveSection(prevItem.id);
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                className="flex items-center gap-2 text-gray-500 hover:text-blue-600 font-bold transition-colors px-4 py-2 rounded-lg hover:bg-gray-100"
+                                            >
+                                                <ArrowLeft size={20} />
+                                                <div className="text-left">
+                                                    <div className="text-xs text-gray-400 uppercase font-semibold">Previous</div>
+                                                    <div>{prevItem.label}</div>
+                                                </div>
+                                            </button>
+                                        ) : <div></div>}
+
+                                        {nextItem && (
+                                            <button
+                                                onClick={() => {
+                                                    setActiveSection(nextItem.id);
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 hover:-translate-y-1"
+                                            >
+                                                <div className="text-right">
+                                                    <div className="text-xs text-blue-200 uppercase font-semibold">Next Lesson</div>
+                                                    <div>{nextItem.label}</div>
+                                                </div>
+                                                <ArrowRight size={24} />
+                                            </button>
+                                        )}
+                                    </>
+                                );
+                            })()}
+                        </div>
                     </div>
                 </main>
             </div>
