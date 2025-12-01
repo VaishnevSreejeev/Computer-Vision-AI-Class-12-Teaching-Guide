@@ -1348,12 +1348,12 @@ function ComputerVisionGuide() {
 
                     {/* Dynamic Content Area */}
                     <div className="md:col-span-9 lg:col-span-9 pb-20">
-                        {activeSection === 'intro' && <IntroSection />}
-                        {activeSection === 'pixels' && <PixelLab />}
-                        {activeSection === 'pipeline' && <PipelineDeepDive />}
-                        {activeSection === 'ml' && <MLVisualizer />}
-                        {activeSection === 'apps' && <ApplicationsSection />}
-                        {activeSection === 'quiz' && <Quiz />}
+                        <div className={activeSection === 'intro' ? 'block' : 'hidden'}><IntroSection /></div>
+                        <div className={activeSection === 'pixels' ? 'block' : 'hidden'}><PixelLab /></div>
+                        <div className={activeSection === 'pipeline' ? 'block' : 'hidden'}><PipelineDeepDive /></div>
+                        <div className={activeSection === 'ml' ? 'block' : 'hidden'}><MLVisualizer /></div>
+                        <div className={activeSection === 'apps' ? 'block' : 'hidden'}><ApplicationsSection /></div>
+                        <div className={activeSection === 'quiz' ? 'block' : 'hidden'}><Quiz /></div>
 
                         {/* Navigation Footer */}
                         <div className="mt-12 flex justify-between items-center pt-8 border-t border-gray-200">
